@@ -10,24 +10,34 @@ function handleFileSelect() {
   fileInput.addEventListener('change', function() {
     const selectedFiles = fileInput.files;
     if (selectedFiles.length > 0) {
-      loadTracks(selectedFiles);
+      addToPlaylist(selectedFiles);
+      loadTrack(track_index);
     }
   });
 }
 
-function loadTracks(files) {
-  track_list = [];
+function addToPlaylist(files) {
   for (const file of files) {
     const track = {
       name: file.name.replace(/\.[^/.]+$/, ""),
-      artist: "Unknown Artist",
-      image: "default-image-url.jpg", // Replace with a valid default image URL
+    //   artist: "Unknown Artist",
+      image: "https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=600", // Replace with a valid default image URL
       path: URL.createObjectURL(file)
     };
     track_list.push(track);
   }
-  track_index = 0;
-  loadTrack(track_index);
+  savePlaylist();
+}
+
+function savePlaylist() {
+  localStorage.setItem('playlist', JSON.stringify(track_list));
+}
+
+function loadPlaylist() {
+  const storedPlaylist = localStorage.getItem('playlist');
+  if (storedPlaylist) {
+    track_list = JSON.parse(storedPlaylist);
+  }
 }
 
 function playpauseTrack() {
@@ -86,6 +96,9 @@ function loadTrack(index) {
 
   seekSlider.addEventListener("input", seekTo);
   volumeSlider.addEventListener("input", setVolume);
+
+  // Change background color when loading a new track
+  randomBackgroundColor();
 }
 
 function resetValues() {
@@ -116,10 +129,18 @@ function seekUpdate() {
     let durationMinutes = Math.floor(curr_track.duration / 60);
     let durationSeconds = Math.floor(curr_track.duration - durationMinutes * 60);
 
-    if (currentSeconds < 10) { currentSeconds = "0" + currentSeconds; }
-    if (durationSeconds < 10) { durationSeconds = "0" + durationSeconds; }
-    if (currentMinutes < 10) { currentMinutes = "0" + currentMinutes; }
-    if (durationMinutes < 10) { durationMinutes = "0" + durationMinutes; }
+    if (currentSeconds < 10) {
+      currentSeconds = "0" + currentSeconds;
+    }
+    if (durationSeconds < 10) {
+      durationSeconds = "0" + durationSeconds;
+    }
+    if (currentMinutes < 10) {
+      currentMinutes = "0" + currentMinutes;
+    }
+    if (durationMinutes < 10) {
+      durationMinutes = "0" + durationMinutes;
+    }
 
     document.querySelector('.current-time').textContent = currentMinutes + ":" + currentSeconds;
     document.querySelector('.total-duration').textContent = durationMinutes + ":" + durationSeconds;
@@ -133,6 +154,30 @@ function nextTrack() {
   loadTrack(track_index);
   playTrack();
 }
+
+function clearPlaylist() {
+  track_list = [];
+  savePlaylist();
+  loadTrack(track_index);
+}
+
+function randomBackgroundColor() {
+  // Get a number between 64 to 256 (for getting lighter colors)
+  let red = Math.floor(Math.random() * 256) + 64;
+  let green = Math.floor(Math.random() * 256) + 64;
+  let blue = Math.floor(Math.random() * 256) + 64;
+
+  // Construct a color with the given values
+  let bgColor = `rgb(${red},${green},${blue})`;
+
+  // Set the background to that color
+  document.body.style.background = bgColor;
+}
+
+// Load playlist on page load
+loadPlaylist();
+// Load the first track from the playlist
+loadTrack(track_index);
 
 // Other functions and event listeners...
 
